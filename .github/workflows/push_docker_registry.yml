@@ -1,0 +1,42 @@
+name: Push to docker registry
+
+on:
+  workflow_call:
+    secrets:
+      DOCKER_REGISTRY_USERNAME:
+        required: true
+      DOCKER_REGISTRY_PASSWORD:
+        required: true
+      DOCKER_REGISTRY_URI:
+        required: true
+    inputs:
+      REPOSITORY_NAME:
+        required: true
+        type: string
+
+jobs:
+  push_to_docker_registry:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to registry
+        run: |
+          echo ${{ secrets.DOCKER_REGISTRY_PASSWORD }} | docker login --username ${{ secrets.DOCKER_REGISTRY_USERNAME }} --password-stdin ${{ secrets.DOCKER_REGISTRY_URI }}
+
+      - name: Configure registry repository
+        run: |
+            echo "REGISTRY_REPO=${{ secrets.DOCKER_REGISTRY_URI }}/$(echo '${{ inputs.REPOSITORY_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY_REPO }}:${{ github.sha }}
+            ${{ env.REGISTRY_REPO }}:latest
+          cache-from: type=registry,ref=${{ env.REGISTRY_REPO }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY_REPO }}:buildcache,mode=max
