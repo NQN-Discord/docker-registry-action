@@ -13,6 +13,9 @@ on:
       REPOSITORY_NAME:
         required: true
         type: string
+      BUILD_ENV:
+        required: false
+        type: string
 
 jobs:
   push_to_docker_registry:
@@ -34,6 +37,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          build-args: ${{ env.BUILD_ENV }}
           push: true
           tags: |
             ${{ env.REGISTRY_REPO }}:${{ github.sha }}
