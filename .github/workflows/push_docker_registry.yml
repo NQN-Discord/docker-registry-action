@@ -37,7 +37,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          build-args: ${{ env.BUILD_ENV }}
+          build-args: ${{ inputs.BUILD_ENV }}
           push: true
           tags: |
             ${{ env.REGISTRY_REPO }}:${{ github.sha }}
