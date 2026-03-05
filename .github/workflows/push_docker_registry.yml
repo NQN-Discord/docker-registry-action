@@ -16,6 +16,10 @@ on:
       BUILD_ENV:
         required: false
         type: string
+      platforms:
+        required: false
+        type: string
+        default: linux/amd64
 
 jobs:
   push_to_docker_registry:
@@ -23,6 +27,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: ${{ inputs.platforms }}
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to registry
